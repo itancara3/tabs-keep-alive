@@ -1,5 +1,6 @@
 import { boot } from 'quasar/wrappers'
 import axios from 'axios'
+import { Notify } from 'quasar'
 
 // Be careful when using SSR for cross-request state pollution
 // due to creating a Singleton instance here;
@@ -8,6 +9,22 @@ import axios from 'axios'
 // "export default () => {}" function below (which runs individually
 // for each client)
 const api = axios.create({ baseURL: 'https://api.example.com' })
+
+// Add a response interceptor
+api.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response && error.response.status === 401) {
+      Notify.create({
+        type: 'negative',
+        message: 'Su sesión ha expirado. Por favor, inicie sesión nuevamente.',
+        position: 'top',
+        timeout: 5000
+      })
+    }
+    return Promise.reject(error)
+  }
+)
 
 export default boot(({ app }) => {
   // for use inside Vue files (Options API) through this.$axios and this.$api
